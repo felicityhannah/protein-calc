@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PROTEIN CALC 80s</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323:wght@400&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --neon-pink: #ff2d78;
+    --neon-cyan: #00f5ff;
+    --neon-yellow: #ffe600;
+    --neon-green: #39ff14;
+    --neon-purple: #bf5fff;
+    --dark-bg: #0a0010;
+    --dark-card: #12001e;
+    --grid-color: rgba(0,245,255,0.08);
+    --scanline: rgba(0,0,0,0.3);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--dark-bg);
+    font-family: 'VT323', monospace;
+    color: var(--neon-cyan);
+    min-height: 100vh;
+    overflow-x: hidden;
+    position: relative;
+  }
+
+  /* CRT scanline effect */
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      var(--scanline) 0px,
+      var(--scanline) 1px,
+      transparent 1px,
+      transparent 3px
+    );
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.35;
+  }
+
+  /* grid floor */
+  body::after {
+    content: '';
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    height: 50vh;
+    background:
+      linear-gradient(rgba(0,245,255,0.15) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,245,255,0.15) 1px, transparent 1px);
+    background-size: 40px 40px;
+    transform: perspective(400px) rotateX(60deg);
+    transform-origin: bottom center;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* HEADER */
+  .header {
+    text-align: center;
+    padding: 30px 0 20px;
+  }
+
+  .title-glow {
+    font-family: 'Press Start 2P', monospace;
+    font-size: clamp(14px, 4vw, 28px);
+    color: var(--neon-pink);
+    text-shadow:
+      0 0 10px var(--neon-pink),
+      0 0 30px var(--neon-pink),
+      0 0 60px var(--neon-pink);
+    letter-spacing: 4px;
+    animation: flicker 4s infinite;
+    line-height: 1.6;
+  }
+
+  .subtitle {
+    font-family: 'VT323', monospace;
+    font-size: 22px;
+    color: var(--neon-yellow);
+    letter-spacing: 6px;
+    text-shadow: 0 0 10px var(--neon-yellow);
+    margin-top: 8px;
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes flicker {
+    0%,100% { opacity: 1; }
+    92% { opacity: 1; }
+    93% { opacity: 0.7; }
+    94% { opacity: 1; }
+    97% { opacity: 0.85; }
+    98% { opacity: 1; }
+  }
+  @keyframes pulse {
+    0%,100% { text-shadow: 0 0 10px var(--neon-yellow); }
+    50% { text-shadow: 0 0 25px var(--neon-yellow), 0 0 50px var(--neon-yellow); }
+  }
+
+  /* LANG SWITCHER */
+  .lang-bar {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin: 16px 0;
+    flex-wrap: wrap;
+  }
+  .lang-btn {
+    background: transparent;
+    border: 1px solid var(--neon-purple);
+    color: var(--neon-purple);
+    font-family: 'VT323', monospace;
+    font-size: 18px;
+    padding: 4px 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 2px;
+  }
+  .lang-btn:hover, .lang-btn.active {
+    background: var(--neon-purple);
+    color: var(--dark-bg);
+    box-shadow: 0 0 15px var(--neon-purple);
+  }
+
+  /* FOOD EMOJIS MARQUEE */
+  .food-marquee {
+    overflow: hidden;
+    border-top: 2px solid var(--neon-cyan);
+    border-bottom: 2px solid var(--neon-cyan);
+    padding: 6px 0;
+    margin: 14px 0;
+    box-shadow: 0 0 10px var(--neon-cyan);
+  }
+  .marquee-inner {
+    display: flex;
+    animation: marquee 20s linear infinite;
+    white-space: nowrap;
+  }
+  .marquee-item {
+    font-size: 28px;
+    margin: 0 16px;
+    filter: drop-shadow(0 0 8px var(--neon-green));
+  }
+  @keyframes marquee {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+
+  /* CARD */
+  .card {
+    background: var(--dark-card);
+    border: 2px solid var(--neon-cyan);
+    box-shadow: 0 0 20px rgba(0,245,255,0.3), inset 0 0 30px rgba(0,0,0,0.5);
+    padding: 24px;
+    margin: 16px 0;
+    position: relative;
+  }
+  .card::before {
+    content: '';
+    position: absolute;
+    top: -2px; left: 20px;
+    right: 20px; height: 2px;
+    background: linear-gradient(90deg, transparent, var(--neon-pink), transparent);
+  }
+
+  .section-label {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 10px;
+    color: var(--neon-yellow);
+    letter-spacing: 3px;
+    text-shadow: 0 0 8px var(--neon-yellow);
+    margin-bottom: 16px;
+    border-bottom: 1px solid rgba(255,230,0,0.3);
+    padding-bottom: 8px;
+  }
+
+  /* FORM ELEMENTS */
+  .form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+  }
+
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+
+  label {
+    font-size: 18px;
+    color: var(--neon-cyan);
+    letter-spacing: 2px;
+  }
+
+  input[type="number"], select {
+    background: #000;
+    border: 2px solid var(--neon-cyan);
+    color: var(--neon-green);
+    font-family: 'VT323', monospace;
+    font-size: 22px;
+    padding: 8px 12px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  input[type="number"]:focus, select:focus {
+    border-color: var(--neon-pink);
+    box-shadow: 0 0 15px var(--neon-pink);
+    color: var(--neon-pink);
+  }
+  select option { background: #0a0010; color: var(--neon-green); }
+
+  /* RADIO GROUPS */
+  .radio-group {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .radio-label {
+    cursor: pointer;
+    border: 2px solid var(--neon-purple);
+    padding: 6px 14px;
+    font-size: 18px;
+    color: var(--neon-purple);
+    transition: all 0.2s;
+    letter-spacing: 1px;
+  }
+  .radio-label input { display: none; }
+  .radio-label.selected, .radio-label:hover {
+    background: var(--neon-purple);
+    color: #000;
+    box-shadow: 0 0 12px var(--neon-purple);
+  }
+
+  /* CALCULATE BUTTON */
+  .calc-btn {
+    width: 100%;
+    padding: 16px;
+    background: transparent;
+    border: 3px solid var(--neon-pink);
+    color: var(--neon-pink);
+    font-family: 'Press Start 2P', monospace;
+    font-size: clamp(10px, 2vw, 14px);
+    letter-spacing: 3px;
+    cursor: pointer;
+    margin-top: 20px;
+    transition: all 0.2s;
+    text-shadow: 0 0 10px var(--neon-pink);
+    box-shadow: 0 0 20px rgba(255,45,120,0.3);
+    position: relative;
+    overflow: hidden;
+  }
+  .calc-btn::before {
+    content: '';
+    position: absolute;
+    top: 0; left: -100%;
+    width: 100%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,45,120,0.3), transparent);
+    transition: left 0.4s;
+  }
+  .calc-btn:hover::before { left: 100%; }
+  .calc-btn:hover {
+    background: var(--neon-pink);
+    color: #000;
+    box-shadow: 0 0 40px var(--neon-pink), 0 0 80px rgba(255,45,120,0.5);
+  }
+  .calc-btn:active { transform: scale(0.98); }
+
+  /* RESULTS */
+  .result-box {
+    display: none;
+    margin-top: 16px;
+  }
+  .result-box.show { display: block; }
+
+  .result-main {
+    text-align: center;
+    padding: 20px;
+    border: 2px solid var(--neon-green);
+    box-shadow: 0 0 30px rgba(57,255,20,0.4);
+    background: rgba(57,255,20,0.05);
+    margin-bottom: 16px;
+    animation: resultIn 0.5s ease-out;
+  }
+  @keyframes resultIn {
+    from { transform: scale(0.95); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+
+  .result-number {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(40px, 10vw, 72px);
+    font-weight: 900;
+    color: var(--neon-green);
+    text-shadow: 0 0 20px var(--neon-green), 0 0 50px var(--neon-green);
+    line-height: 1;
+  }
+  .result-unit {
+    font-size: 24px;
+    color: var(--neon-yellow);
+    letter-spacing: 4px;
+  }
+  .result-label {
+    font-size: 20px;
+    color: #aaa;
+    margin-top: 8px;
+  }
+
+  /* BREAKDOWN TABLE */
+  .breakdown {
+    border: 1px solid rgba(0,245,255,0.3);
+  }
+  .breakdown-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 16px;
+    border-bottom: 1px solid rgba(0,245,255,0.1);
+    font-size: 20px;
+    transition: background 0.2s;
+  }
+  .breakdown-row:hover { background: rgba(0,245,255,0.05); }
+  .breakdown-row:last-child { border-bottom: none; }
+  .breakdown-emoji { font-size: 24px; margin-right: 8px; }
+  .breakdown-food { color: var(--neon-cyan); }
+  .breakdown-val { color: var(--neon-yellow); font-family: 'Orbitron', monospace; font-size: 18px; }
+  .breakdown-bar-wrap { flex: 1; margin: 0 16px; height: 8px; background: rgba(255,255,255,0.1); }
+  .breakdown-bar { height: 100%; background: linear-gradient(90deg, var(--neon-cyan), var(--neon-purple)); transition: width 1s ease; box-shadow: 0 0 6px var(--neon-cyan); }
+
+  /* TIP BOX */
+  .tip-box {
+    border: 1px dashed var(--neon-yellow);
+    padding: 12px 16px;
+    margin-top: 12px;
+    font-size: 20px;
+    color: var(--neon-yellow);
+    text-shadow: 0 0 6px var(--neon-yellow);
+    letter-spacing: 1px;
+    line-height: 1.5;
+  }
+  .tip-box span { color: var(--neon-pink); }
+
+  /* FOOD REFERENCE */
+  .food-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 10px;
+    margin-top: 10px;
+  }
+  .food-card {
+    border: 1px solid rgba(191,95,255,0.4);
+    padding: 10px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: rgba(191,95,255,0.05);
+  }
+  .food-card:hover {
+    border-color: var(--neon-purple);
+    box-shadow: 0 0 15px var(--neon-purple);
+    transform: translateY(-2px);
+  }
+  .food-card-emoji { font-size: 32px; display: block; }
+  .food-card-name { font-size: 16px; color: var(--neon-cyan); margin-top: 4px; }
+  .food-card-prot { font-size: 20px; color: var(--neon-green); font-family: 'Orbitron'; }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: #000; }
+  ::-webkit-scrollbar-thumb { background: var(--neon-pink); }
+
+  /* FOOTER */
+  .footer {
+    text-align: center;
+    font-size: 16px;
+    color: rgba(0,245,255,0.4);
+    padding: 20px;
+    letter-spacing: 3px;
+    border-top: 1px solid rgba(0,245,255,0.1);
+    margin-top: 20px;
+  }
+
+  /* blinking cursor */
+  .blink { animation: blink 1s step-end infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  /* pixel corner decorations */
+  .card-corner {
+    position: absolute;
+    width: 10px; height: 10px;
+    background: var(--neon-pink);
+  }
+  .card-corner.tl { top: -2px; left: -2px; }
+  .card-corner.tr { top: -2px; right: -2px; }
+  .card-corner.bl { bottom: -2px; left: -2px; }
+  .card-corner.br { bottom: -2px; right: -2px; }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="title-glow" id="main-title">⚡ PROTEIN CALC ⚡</div>
+    <div class="subtitle" id="main-sub">◆ XTRON-7 MUSCLE EDITION ◆</div>
+  </div>
+
+  <!-- LANG BAR -->
+  <div class="lang-bar">
+    <button class="lang-btn active" onclick="setLang('en')">EN</button>
+    <button class="lang-btn" onclick="setLang('zh')">中文</button>
+    <button class="lang-btn" onclick="setLang('de')">DE</button>
+    <button class="lang-btn" onclick="setLang('ja')">日本語</button>
+    <button class="lang-btn" onclick="setLang('fr')">FR</button>
+    <button class="lang-btn" onclick="setLang('es')">ES</button>
+  </div>
+
+  <!-- MARQUEE -->
+  <div class="food-marquee">
+    <div class="marquee-inner">
+      <span class="marquee-item">🥩</span><span class="marquee-item">🍗</span><span class="marquee-item">🥚</span>
+      <span class="marquee-item">🐟</span><span class="marquee-item">🫘</span><span class="marquee-item">🧀</span>
+      <span class="marquee-item">🥦</span><span class="marquee-item">🥜</span><span class="marquee-item">🍖</span>
+      <span class="marquee-item">🦐</span><span class="marquee-item">🧆</span><span class="marquee-item">🥛</span>
+      <span class="marquee-item">🫀</span><span class="marquee-item">🍣</span><span class="marquee-item">🥩</span>
+      <!-- duplicate for loop -->
+      <span class="marquee-item">🥩</span><span class="marquee-item">🍗</span><span class="marquee-item">🥚</span>
+      <span class="marquee-item">🐟</span><span class="marquee-item">🫘</span><span class="marquee-item">🧀</span>
+      <span class="marquee-item">🥦</span><span class="marquee-item">🥜</span><span class="marquee-item">🍖</span>
+      <span class="marquee-item">🦐</span><span class="marquee-item">🧆</span><span class="marquee-item">🥛</span>
+      <span class="marquee-item">🫀</span><span class="marquee-item">🍣</span><span class="marquee-item">🥩</span>
+    </div>
+  </div>
+
+  <!-- INPUT CARD -->
+  <div class="card" style="position:relative">
+    <div class="card-corner tl"></div><div class="card-corner tr"></div>
+    <div class="card-corner bl"></div><div class="card-corner br"></div>
+    <div class="section-label" id="lbl-input">▶ INPUT DATA</div>
+
+    <div class="form-grid">
+      <div class="form-group">
+        <label id="lbl-weight">⚖ WEIGHT</label>
+        <input type="number" id="weight" placeholder="70" min="20" max="300" value="70">
+      </div>
+      <div class="form-group">
+        <label id="lbl-unit">📐 UNIT</label>
+        <select id="unit-select">
+          <option value="kg">KG</option>
+          <option value="lbs">LBS</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label id="lbl-age">🎂 AGE</label>
+        <input type="number" id="age" placeholder="25" min="10" max="100" value="25">
+      </div>
+      <div class="form-group">
+        <label id="lbl-goal">🎯 GOAL</label>
+        <select id="goal">
+          <option value="maintain" id="opt-maintain">MAINTAIN</option>
+          <option value="build" id="opt-build">BUILD MUSCLE</option>
+          <option value="lose" id="opt-lose">LOSE WEIGHT</option>
+          <option value="athlete" id="opt-athlete">ATHLETE</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-group" style="margin-top:16px">
+      <label id="lbl-gender">⚡ GENDER</label>
+      <div class="radio-group">
+        <label class="radio-label selected" id="r-male">
+          <input type="radio" name="gender" value="male" checked>
+          <span id="r-male-text">♂ MALE</span>
+        </label>
+        <label class="radio-label" id="r-female">
+          <input type="radio" name="gender" value="female">
+          <span id="r-female-text">♀ FEMALE</span>
+        </label>
+        <label class="radio-label" id="r-other">
+          <input type="radio" name="gender" value="other">
+          <span id="r-other-text">◆ OTHER</span>
+        </label>
+      </div>
+    </div>
+
+    <div class="form-group" style="margin-top:16px">
+      <label id="lbl-activity">🏃 ACTIVITY</label>
+      <div class="radio-group" style="flex-direction:column; gap:6px">
+        <label class="radio-label selected" id="r-sed"><input type="radio" name="activity" value="1.2" checked><span id="r-sed-t">🛋 SEDENTARY</span></label>
+        <label class="radio-label" id="r-light"><input type="radio" name="activity" value="1.375"><span id="r-light-t">🚶 LIGHT (1-3×/WK)</span></label>
+        <label class="radio-label" id="r-mod"><input type="radio" name="activity" value="1.55"><span id="r-mod-t">🏋 MODERATE (3-5×/WK)</span></label>
+        <label class="radio-label" id="r-hard"><input type="radio" name="activity" value="1.725"><span id="r-hard-t">🔥 INTENSE (6-7×/WK)</span></label>
+        <label class="radio-label" id="r-ath"><input type="radio" name="activity" value="1.9"><span id="r-ath-t">⚡ ATHLETE (2×/DAY)</span></label>
+      </div>
+    </div>
+
+    <button class="calc-btn" onclick="calculate()" id="calc-btn-text">
+      [ CALCULATE NOW ] <span class="blink">█</span>
+    </button>
+  </div>
+
+  <!-- RESULT -->
+  <div class="result-box" id="result-box">
+    <div class="card" style="position:relative">
+      <div class="card-corner tl"></div><div class="card-corner tr"></div>
+      <div class="card-corner bl"></div><div class="card-corner br"></div>
+      <div class="section-label" id="lbl-result">▶ RESULT MATRIX</div>
+
+      <div class="result-main">
+        <div class="result-number" id="result-num">--</div>
+        <div class="result-unit">g / <span id="res-unit-label">day</span></div>
+        <div class="result-label" id="res-label">DAILY PROTEIN TARGET</div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;text-align:center">
+        <div style="border:1px solid rgba(0,245,255,0.3);padding:10px">
+          <div style="font-size:16px;color:#777" id="lbl-per-meal">PER MEAL</div>
+          <div style="font-family:Orbitron;font-size:24px;color:var(--neon-yellow)" id="per-meal-val">--</div>
+          <div style="font-size:14px;color:#555">g</div>
+        </div>
+        <div style="border:1px solid rgba(0,245,255,0.3);padding:10px">
+          <div style="font-size:16px;color:#777" id="lbl-per-kg">PER KG</div>
+          <div style="font-family:Orbitron;font-size:24px;color:var(--neon-pink)" id="per-kg-val">--</div>
+          <div style="font-size:14px;color:#555">g/kg</div>
+        </div>
+        <div style="border:1px solid rgba(0,245,255,0.3);padding:10px">
+          <div style="font-size:16px;color:#777" id="lbl-calories">CALORIES</div>
+          <div style="font-family:Orbitron;font-size:24px;color:var(--neon-green)" id="calories-val">--</div>
+          <div style="font-size:14px;color:#555">kcal</div>
+        </div>
+      </div>
+
+      <div class="section-label" id="lbl-sources">▶ FOOD SOURCES</div>
+      <div class="breakdown" id="breakdown-table"></div>
+
+      <div class="tip-box" id="tip-box"></div>
+    </div>
+  </div>
+
+  <!-- FOOD REFERENCE -->
+  <div class="card" style="position:relative">
+    <div class="card-corner tl"></div><div class="card-corner tr"></div>
+    <div class="card-corner bl"></div><div class="card-corner br"></div>
+    <div class="section-label" id="lbl-ref">▶ PROTEIN DATABASE (per 100g)</div>
+    <div class="food-grid" id="food-grid"></div>
+  </div>
+
+  <div class="footer">PROTEIN CALC v.XTRON-7 ◆ <span class="blink">■</span> ALL SYSTEMS OPERATIONAL</div>
+</div>
+
+<script>
+// ─── TRANSLATIONS ────────────────────────────────────────────────────────────
+const T = {
+  en: {
+    mainTitle: '⚡ PROTEIN CALC ⚡',
+    mainSub: '◆ XTRON-7 MUSCLE EDITION ◆',
+    lblInput: '▶ INPUT DATA',
+    lblWeight: '⚖ WEIGHT', lblUnit: '📐 UNIT', lblAge: '🎂 AGE', lblGoal: '🎯 GOAL',
+    lblGender: '⚡ GENDER', lblActivity: '🏃 ACTIVITY', lblResult: '▶ RESULT MATRIX',
+    lblPerMeal: 'PER MEAL', lblPerKg: 'PER KG', lblCalories: 'CALORIES',
+    lblSources: '▶ FOOD SOURCES', lblRef: '▶ PROTEIN DATABASE (per 100g)',
+    calcBtn: '[ CALCULATE NOW ]',
+    optMaintain: 'MAINTAIN', optBuild: 'BUILD MUSCLE', optLose: 'LOSE WEIGHT', optAthlete: 'ATHLETE',
+    rMale: '♂ MALE', rFemale: '♀ FEMALE', rOther: '◆ OTHER',
+    rSed: '🛋 SEDENTARY', rLight: '🚶 LIGHT (1-3×/WK)', rMod: '🏋 MODERATE (3-5×/WK)',
+    rHard: '🔥 INTENSE (6-7×/WK)', rAth: '⚡ ATHLETE (2×/DAY)',
+    resLabel: 'DAILY PROTEIN TARGET',
+    resUnitLabel: 'day',
+    tip: {
+      maintain: '💡 TIP: Spread protein over <span>4-5 meals</span> for optimal absorption.',
+      build: '💡 TIP: Consume <span>30-40g protein</span> within 2hrs after training.',
+      lose: '💡 TIP: High protein keeps you <span>full longer</span> and preserves muscle.',
+      athlete: '💡 TIP: Consider <span>casein protein</span> before sleep for overnight recovery.',
+    }
+  },
+  zh: {
+    mainTitle: '⚡ 蛋白质计算器 ⚡',
+    mainSub: '◆ XTRON-7 健身版 ◆',
+    lblInput: '▶ 输入数据',
+    lblWeight: '⚖ 体重', lblUnit: '📐 单位', lblAge: '🎂 年龄', lblGoal: '🎯 目标',
+    lblGender: '⚡ 性别', lblActivity: '🏃 活动量', lblResult: '▶ 计算结果',
+    lblPerMeal: '每餐', lblPerKg: '每公斤', lblCalories: '热量',
+    lblSources: '▶ 食物来源', lblRef: '▶ 蛋白质数据库（每100克）',
+    calcBtn: '[ 立即计算 ]',
+    optMaintain: '维持体重', optBuild: '增肌', optLose: '减脂', optAthlete: '竞技运动',
+    rMale: '♂ 男性', rFemale: '♀ 女性', rOther: '◆ 其他',
+    rSed: '🛋 久坐不动', rLight: '🚶 轻度运动（1-3次/周）', rMod: '🏋 中等运动（3-5次/周）',
+    rHard: '🔥 高强度（6-7次/周）', rAth: '⚡ 专业运动（每天2次）',
+    resLabel: '每日蛋白质目标',
+    resUnitLabel: '天',
+    tip: {
+      maintain: '💡 提示：将蛋白质分配在<span>4-5餐</span>中，吸收效果更佳。',
+      build: '💡 提示：训练后<span>2小时内</span>摄入30-40克蛋白质。',
+      lose: '💡 提示：高蛋白饮食让你<span>更有饱腹感</span>，同时保留肌肉。',
+      athlete: '💡 提示：睡前补充<span>酪蛋白</span>，有助于夜间恢复。',
+    }
+  },
+  de: {
+    mainTitle: '⚡ PROTEIN RECHNER ⚡',
+    mainSub: '◆ XTRON-7 MUSKEL EDITION ◆',
+    lblInput: '▶ EINGABE',
+    lblWeight: '⚖ GEWICHT', lblUnit: '📐 EINHEIT', lblAge: '🎂 ALTER', lblGoal: '🎯 ZIEL',
+    lblGender: '⚡ GESCHLECHT', lblActivity: '🏃 AKTIVITÄT', lblResult: '▶ ERGEBNIS',
+    lblPerMeal: 'PRO MAHLZEIT', lblPerKg: 'PRO KG', lblCalories: 'KALORIEN',
+    lblSources: '▶ QUELLEN', lblRef: '▶ PROTEINDATENBANK (pro 100g)',
+    calcBtn: '[ BERECHNEN ]',
+    optMaintain: 'HALTEN', optBuild: 'MUSKELAUFBAU', optLose: 'ABNEHMEN', optAthlete: 'ATHLET',
+    rMale: '♂ MÄNNLICH', rFemale: '♀ WEIBLICH', rOther: '◆ ANDERE',
+    rSed: '🛋 SITZEND', rLight: '🚶 LEICHT (1-3×/WO)', rMod: '🏋 MODERAT (3-5×/WO)',
+    rHard: '🔥 INTENSIV (6-7×/WO)', rAth: '⚡ ATHLET (2×/TAG)',
+    resLabel: 'TÄGLICHES PROTEINZIEL',
+    resUnitLabel: 'Tag',
+    tip: {
+      maintain: '💡 TIPP: Verteile Protein auf <span>4-5 Mahlzeiten</span>.',
+      build: '💡 TIPP: <span>30-40g Protein</span> innerhalb von 2h nach dem Training.',
+      lose: '💡 TIPP: Hoher Proteingehalt hält dich <span>länger satt</span>.',
+      athlete: '💡 TIPP: <span>Kaseinprotein</span> vor dem Schlafen fördert die Regeneration.',
+    }
+  },
+  ja: {
+    mainTitle: '⚡ タンパク質計算機 ⚡',
+    mainSub: '◆ XTRON-7 マッスルエディション ◆',
+    lblInput: '▶ データ入力',
+    lblWeight: '⚖ 体重', lblUnit: '📐 単位', lblAge: '🎂 年齢', lblGoal: '🎯 目標',
+    lblGender: '⚡ 性別', lblActivity: '🏃 運動量', lblResult: '▶ 計算結果',
+    lblPerMeal: '1食あたり', lblPerKg: '体重1kgあたり', lblCalories: 'カロリー',
+    lblSources: '▶ 食品別内訳', lblRef: '▶ タンパク質データベース（100gあたり）',
+    calcBtn: '[ 計算する ]',
+    optMaintain: '現状維持', optBuild: '筋肉増量', optLose: '減量', optAthlete: 'アスリート',
+    rMale: '♂ 男性', rFemale: '♀ 女性', rOther: '◆ その他',
+    rSed: '🛋 ほぼ運動なし', rLight: '🚶 軽い運動（週1-3回）', rMod: '🏋 中程度（週3-5回）',
+    rHard: '🔥 激しい運動（週6-7回）', rAth: '⚡ アスリート（1日2回）',
+    resLabel: '1日のタンパク質目標',
+    resUnitLabel: '日',
+    tip: {
+      maintain: '💡 ヒント：タンパク質を<span>4〜5回</span>の食事に分けて摂取しましょう。',
+      build: '💡 ヒント：トレーニング後<span>2時間以内</span>に30〜40gを摂取。',
+      lose: '💡 ヒント：高タンパク食は<span>満腹感</span>を持続させ筋肉を守ります。',
+      athlete: '💡 ヒント：就寝前に<span>カゼインプロテイン</span>を摂ると回復が促進されます。',
+    }
+  },
+  fr: {
+    mainTitle: '⚡ CALCULATEUR PROTÉINES ⚡',
+    mainSub: '◆ ÉDITION MUSCLE XTRON-7 ◆',
+    lblInput: '▶ DONNÉES',
+    lblWeight: '⚖ POIDS', lblUnit: '📐 UNITÉ', lblAge: '🎂 ÂGE', lblGoal: '🎯 OBJECTIF',
+    lblGender: '⚡ GENRE', lblActivity: '🏃 ACTIVITÉ', lblResult: '▶ RÉSULTAT',
+    lblPerMeal: 'PAR REPAS', lblPerKg: 'PAR KG', lblCalories: 'CALORIES',
+    lblSources: '▶ SOURCES', lblRef: '▶ BASE DE DONNÉES (pour 100g)',
+    calcBtn: '[ CALCULER ]',
+    optMaintain: 'MAINTENIR', optBuild: 'MUSCLE', optLose: 'MAIGRIR', optAthlete: 'ATHLÈTE',
+    rMale: '♂ HOMME', rFemale: '♀ FEMME', rOther: '◆ AUTRE',
+    rSed: '🛋 SÉDENTAIRE', rLight: '🚶 LÉGER (1-3×/SEM)', rMod: '🏋 MODÉRÉ (3-5×/SEM)',
+    rHard: '🔥 INTENSE (6-7×/SEM)', rAth: '⚡ ATHLÈTE (2×/JOUR)',
+    resLabel: 'OBJECTIF QUOTIDIEN EN PROTÉINES',
+    resUnitLabel: 'jour',
+    tip: {
+      maintain: '💡 CONSEIL : Répartis les protéines sur <span>4-5 repas</span>.',
+      build: '💡 CONSEIL : Consomme <span>30-40g de protéines</span> dans les 2h après l\'entraînement.',
+      lose: '💡 CONSEIL : Les protéines te gardent <span>rassasié plus longtemps</span>.',
+      athlete: '💡 CONSEIL : La <span>caséine</span> avant le coucher favorise la récupération nocturne.',
+    }
+  },
+  es: {
+    mainTitle: '⚡ CALCULADORA PROTEÍNA ⚡',
+    mainSub: '◆ EDICIÓN MÚSCULO XTRON-7 ◆',
+    lblInput: '▶ DATOS',
+    lblWeight: '⚖ PESO', lblUnit: '📐 UNIDAD', lblAge: '🎂 EDAD', lblGoal: '🎯 OBJETIVO',
+    lblGender: '⚡ GÉNERO', lblActivity: '🏃 ACTIVIDAD', lblResult: '▶ RESULTADO',
+    lblPerMeal: 'POR COMIDA', lblPerKg: 'POR KG', lblCalories: 'CALORÍAS',
+    lblSources: '▶ FUENTES', lblRef: '▶ BASE DE DATOS (por 100g)',
+    calcBtn: '[ CALCULAR ]',
+    optMaintain: 'MANTENER', optBuild: 'GANAR MÚSCULO', optLose: 'PERDER PESO', optAthlete: 'ATLETA',
+    rMale: '♂ MASCULINO', rFemale: '♀ FEMENINO', rOther: '◆ OTRO',
+    rSed: '🛋 SEDENTARIO', rLight: '🚶 LEVE (1-3×/SEM)', rMod: '🏋 MODERADO (3-5×/SEM)',
+    rHard: '🔥 INTENSO (6-7×/SEM)', rAth: '⚡ ATLETA (2×/DÍA)',
+    resLabel: 'META DIARIA DE PROTEÍNA',
+    resUnitLabel: 'día',
+    tip: {
+      maintain: '💡 TIP: Distribuye la proteína en <span>4-5 comidas</span>.',
+      build: '💡 TIP: Consume <span>30-40g de proteína</span> dentro de 2h tras el entrenamiento.',
+      lose: '💡 TIP: Alta proteína te mantiene <span>más saciado</span> y conserva músculo.',
+      athlete: '💡 TIP: <span>Proteína de caseína</span> antes de dormir acelera la recuperación.',
+    }
+  }
+};
+
+// Food database with protein per 100g
+const FOODS = [
+  { emoji: '🍗', nameKey: 'Chicken Breast', prot: 31, nameZh:'鸡胸肉', nameDe:'Hähnchenbrust', nameJa:'鶏むね肉', nameFr:'Blanc de poulet', nameEs:'Pechuga de pollo' },
+  { emoji: '🥩', nameKey: 'Beef Steak', prot: 26, nameZh:'牛排', nameDe:'Rindersteak', nameJa:'牛ステーキ', nameFr:'Bifteck', nameEs:'Filete de res' },
+  { emoji: '🐟', nameKey: 'Tuna', prot: 29, nameZh:'金枪鱼', nameDe:'Thunfisch', nameJa:'マグロ', nameFr:'Thon', nameEs:'Atún' },
+  { emoji: '🥚', nameKey: 'Eggs', prot: 13, nameZh:'鸡蛋', nameDe:'Eier', nameJa:'卵', nameFr:'Œufs', nameEs:'Huevos' },
+  { emoji: '🧀', nameKey: 'Cottage Cheese', prot: 11, nameZh:'农家奶酪', nameDe:'Hüttenkäse', nameJa:'カッテージチーズ', nameFr:'Fromage blanc', nameEs:'Requesón' },
+  { emoji: '🫘', nameKey: 'Black Beans', prot: 9, nameZh:'黑豆', nameDe:'Schwarze Bohnen', nameJa:'黒豆', nameFr:'Haricots noirs', nameEs:'Frijoles negros' },
+  { emoji: '🥦', nameKey: 'Edamame', prot: 11, nameZh:'毛豆', nameDe:'Edamame', nameJa:'枝豆', nameFr:'Edamame', nameEs:'Edamame' },
+  { emoji: '🥜', nameKey: 'Peanut Butter', prot: 25, nameZh:'花生酱', nameDe:'Erdnussbutter', nameJa:'ピーナッツバター', nameFr:'Beurre de cacahuète', nameEs:'Crema de maní' },
+  { emoji: '🦐', nameKey: 'Shrimp', prot: 24, nameZh:'虾', nameDe:'Garnelen', nameJa:'エビ', nameFr:'Crevettes', nameEs:'Camarones' },
+  { emoji: '🍖', nameKey: 'Pork Loin', prot: 22, nameZh:'猪里脊', nameDe:'Schweinefilet', nameJa:'豚ロース', nameFr:'Longe de porc', nameEs:'Lomo de cerdo' },
+  { emoji: '🥛', nameKey: 'Greek Yogurt', prot: 10, nameZh:'希腊酸奶', nameDe:'Griechischer Joghurt', nameJa:'ギリシャヨーグルト', nameFr:'Yaourt grec', nameEs:'Yogur griego' },
+  { emoji: '🍣', nameKey: 'Salmon', prot: 20, nameZh:'三文鱼', nameDe:'Lachs', nameJa:'サーモン', nameFr:'Saumon', nameEs:'Salmón' },
+];
+
+let currentLang = 'en';
+
+function setLang(lang) {
+  currentLang = lang;
+  document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  applyTranslations();
+  renderFoodGrid();
+}
+
+function applyTranslations() {
+  const t = T[currentLang];
+  const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+  set('main-title', t.mainTitle);
+  set('main-sub', t.mainSub);
+  set('lbl-input', t.lblInput);
+  set('lbl-weight', t.lblWeight);
+  set('lbl-unit', t.lblUnit);
+  set('lbl-age', t.lblAge);
+  set('lbl-goal', t.lblGoal);
+  set('lbl-gender', t.lblGender);
+  set('lbl-activity', t.lblActivity);
+  set('lbl-result', t.lblResult);
+  set('lbl-per-meal', t.lblPerMeal);
+  set('lbl-per-kg', t.lblPerKg);
+  set('lbl-calories', t.lblCalories);
+  set('lbl-sources', t.lblSources);
+  set('lbl-ref', t.lblRef);
+  set('res-label', t.resLabel);
+  set('res-unit-label', t.resUnitLabel);
+  document.getElementById('calc-btn-text').innerHTML = `${t.calcBtn} <span class="blink">█</span>`;
+  set('opt-maintain', t.optMaintain);
+  set('opt-build', t.optBuild);
+  set('opt-lose', t.optLose);
+  set('opt-athlete', t.optAthlete);
+  set('r-male-text', t.rMale);
+  set('r-female-text', t.rFemale);
+  set('r-other-text', t.rOther);
+  document.querySelector('#r-sed span').textContent = t.rSed;
+  document.querySelector('#r-light span').textContent = t.rLight;
+  document.querySelector('#r-mod span').textContent = t.rMod;
+  document.querySelector('#r-hard span').textContent = t.rHard;
+  document.querySelector('#r-ath span').textContent = t.rAth;
+}
+
+function getFoodName(food) {
+  const map = { zh: 'nameZh', de: 'nameDe', ja: 'nameJa', fr: 'nameFr', es: 'nameEs' };
+  return food[map[currentLang]] || food.nameKey;
+}
+
+function renderFoodGrid() {
+  const grid = document.getElementById('food-grid');
+  grid.innerHTML = FOODS.map(f => `
+    <div class="food-card">
+      <span class="food-card-emoji">${f.emoji}</span>
+      <div class="food-card-name">${getFoodName(f)}</div>
+      <div class="food-card-prot">${f.prot}g</div>
+    </div>
+  `).join('');
+}
+
+function calculate() {
+  const weight = parseFloat(document.getElementById('weight').value) || 70;
+  const unit = document.getElementById('unit-select').value;
+  const age = parseInt(document.getElementById('age').value) || 25;
+  const goal = document.getElementById('goal').value;
+  const gender = document.querySelector('input[name="gender"]:checked')?.value || 'male';
+  const activity = parseFloat(document.querySelector('input[name="activity"]:checked')?.value || 1.2);
+
+  const weightKg = unit === 'lbs' ? weight * 0.453592 : weight;
+
+  // Protein multipliers (g/kg)
+  const multipliers = { maintain: 1.4, build: 2.0, lose: 1.8, athlete: 2.3 };
+  let mult = multipliers[goal];
+  // age adjustment
+  if (age > 50) mult += 0.1;
+  if (gender === 'female') mult -= 0.1;
+  // activity adjustment
+  mult += (activity - 1.2) * 0.3;
+
+  const proteinG = Math.round(weightKg * mult);
+  const perMeal = Math.round(proteinG / 4);
+  const perKg = mult.toFixed(1);
+  const calories = Math.round(proteinG * 4); // 4 kcal/g
+
+  document.getElementById('result-num').textContent = proteinG;
+  document.getElementById('per-meal-val').textContent = perMeal;
+  document.getElementById('per-kg-val').textContent = perKg;
+  document.getElementById('calories-val').textContent = calories;
+
+  // Breakdown bars
+  const sorted = [...FOODS].sort((a,b) => b.prot - a.prot).slice(0, 6);
+  const maxProt = sorted[0].prot;
+  const table = document.getElementById('breakdown-table');
+  table.innerHTML = sorted.map(f => {
+    const portion = Math.round(proteinG / (f.prot / 100));
+    const pct = (f.prot / maxProt * 100).toFixed(0);
+    return `
+      <div class="breakdown-row">
+        <span class="breakdown-emoji">${f.emoji}</span>
+        <span class="breakdown-food" style="min-width:120px">${getFoodName(f)}</span>
+        <div class="breakdown-bar-wrap"><div class="breakdown-bar" style="width:0%" data-w="${pct}"></div></div>
+        <span class="breakdown-val">${portion}g</span>
+      </div>`;
+  }).join('');
+
+  // Animate bars
+  setTimeout(() => {
+    table.querySelectorAll('.breakdown-bar').forEach(b => {
+      b.style.width = b.dataset.w + '%';
+    });
+  }, 50);
+
+  // Tip
+  const t = T[currentLang];
+  document.getElementById('tip-box').innerHTML = t.tip[goal] || t.tip.maintain;
+
+  document.getElementById('result-box').classList.add('show');
+  document.getElementById('result-box').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// Radio label click handling
+document.querySelectorAll('.radio-label').forEach(label => {
+  label.addEventListener('click', function() {
+    const name = this.querySelector('input').name;
+    document.querySelectorAll(`.radio-label`).forEach(l => {
+      if (l.querySelector('input')?.name === name) l.classList.remove('selected');
+    });
+    this.classList.add('selected');
+  });
+});
+
+// Init
+renderFoodGrid();
+</script>
+</body>
+</html>
