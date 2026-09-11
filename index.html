@@ -297,6 +297,21 @@
 
   /* Footer */
   .footer { text-align:center; font-size:16px; color:rgba(0,245,255,0.4); padding:20px; letter-spacing:3px; border-top:1px solid rgba(0,245,255,0.1); margin-top:20px; }
+  .footer-contact { margin-top:10px; color:var(--neon-purple); }
+  .footer-contact a {
+    color:var(--neon-purple);
+    text-decoration:none;
+    text-shadow:0 0 8px rgba(191,95,255,0.75);
+    overflow-wrap:anywhere;
+    transition:color 0.2s, text-shadow 0.2s;
+  }
+  .footer-contact a:hover,
+  .footer-contact a:focus-visible {
+    color:var(--neon-cyan);
+    text-shadow:0 0 12px var(--neon-cyan);
+  }
+
+
 </style>
 </head>
 <body>
@@ -603,6 +618,9 @@
   </div>
 
   <div class="footer">PROTEIN CALC v.XTRON-7 ◆ <span class="blink">■</span> ALL SYSTEMS OPERATIONAL</div>
+   
+   <div class="footer-contact">CONTACT ◆ <a href="mailto:felicityahawhale@gmail.com">felicityahawhale@gmail.com</a></div>
+   
 </div>
 
 <script>
