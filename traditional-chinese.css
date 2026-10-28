@@ -1,0 +1,145 @@
+/* Traditional Chinese keeps the same arcade palette, frames and numeric fonts.
+   The local pixel face is for display text; prose uses native TC UI fonts. */
+@font-face {
+  font-family: 'Cubic 11';
+  src: url('fonts/cubic-11.woff2') format('woff2');
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+
+html:lang(zh-Hant) {
+  --display: 'Cubic 11', 'Microsoft JhengHei', 'PingFang TC', sans-serif;
+  --body: 'Microsoft JhengHei', 'PingFang TC', 'Noto Sans CJK TC', sans-serif;
+}
+
+html:lang(zh-Hant) body { font-size: 16px; line-height: 1.8; line-break: strict; }
+html:lang(zh-Hant) .brand-name {
+  font-size: 24px;
+  letter-spacing: .12em;
+  text-shadow: 0 0 8px rgba(255,45,120,.65), 0 0 24px rgba(255,45,120,.4);
+}
+html:lang(zh-Hant) .hero-headline {
+  max-width: 21em;
+  font-size: 36px;
+  line-height: 1.6;
+  letter-spacing: .04em;
+  margin-top: 20px;
+  overflow-wrap: normal;
+  text-shadow: 0 0 10px rgba(255,230,0,.35);
+}
+html:lang(zh-Hant) .languages button {
+  font-family: var(--body);
+  font-size: 14px;
+  line-height: 1.5;
+  letter-spacing: .04em;
+  padding: 6px 12px;
+  min-height: 36px;
+}
+html:lang(zh-Hant) .main-nav .nav-link {
+  font-size: 18px;
+  line-height: 1.6;
+  letter-spacing: .06em;
+  padding: 12px 8px;
+}
+html:lang(zh-Hant) .terminal-label { font-size: 14px; letter-spacing: .06em; }
+html:lang(zh-Hant) :is(.section-topline, .panel-heading h2, .meal-card h3) {
+  font-size: 18px;
+  line-height: 1.6;
+  letter-spacing: .06em;
+  text-shadow: 0 0 7px rgba(255,230,0,.3);
+}
+html:lang(zh-Hant) .topline-hint { font-size: 14px; letter-spacing: .02em; }
+html:lang(zh-Hant) .step-index { font-family: 'Press Start 2P', monospace; font-size: 8px; }
+html:lang(zh-Hant) :is(.field label, legend) { font-size: 16px; line-height: 1.6; letter-spacing: .04em; }
+html:lang(zh-Hant) :is(input, select) { font-size: 20px; height: 48px; }
+html:lang(zh-Hant) .input-suffix>span { font-family: 'VT323', monospace; font-size: 22px; top: 7px; }
+html:lang(zh-Hant) .goal-option { padding: 12px 14px; }
+html:lang(zh-Hant) .goal-option strong { font-size: 18px; line-height: 1.6; letter-spacing: .04em; }
+html:lang(zh-Hant) .goal-option small { font-size: 14px; line-height: 1.7; }
+html:lang(zh-Hant) .goal-symbol { font-family: 'VT323', monospace; font-size: 28px; }
+html:lang(zh-Hant) .button { font-size: 16px; line-height: 1.6; letter-spacing: .06em; min-height: 44px; }
+html:lang(zh-Hant) .button-primary { font-size: 24px; letter-spacing: .1em; padding: 12px 16px; }
+html:lang(zh-Hant) .button-small { min-height: 36px; padding: 6px 14px; font-size: 14px; }
+html:lang(zh-Hant) .result-panel>.button { font-size: 18px; padding: 12px; }
+html:lang(zh-Hant) :is(.input-footnote, .estimate-footnote, .meal-footnote, .small) {
+  font-size: 14px;
+  line-height: 1.8;
+}
+html:lang(zh-Hant) .pill { font-size: 13px; line-height: 1.5; letter-spacing: .02em; }
+html:lang(zh-Hant) .result-display>p { font-size: 16px; margin-top: 16px; }
+html:lang(zh-Hant) .result-grams { font-family: var(--body); }
+html:lang(zh-Hant) .result-grams>span { font-size: 14px; letter-spacing: 0; }
+html:lang(zh-Hant) .result-range { font-size: 15px; line-height: 1.7; }
+html:lang(zh-Hant) .result-metrics small { font-size: 14px; line-height: 1.7; }
+html:lang(zh-Hant) :is(.method, .method p, .section-heading, .hero-description) { font-size: 16px; line-height: 1.8; }
+html:lang(zh-Hant) .method summary { gap: 14px; }
+html:lang(zh-Hant) .segmented button { font-size: 15px; line-height: 1.6; padding: 8px 12px; }
+html:lang(zh-Hant) .meal-items { font-size: 16px; line-height: 1.8; }
+html:lang(zh-Hant) .meal-items li { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 12px; margin-bottom: 10px; }
+html:lang(zh-Hant) .meal-items li>span:first-child { max-width: none; overflow-wrap: break-word; }
+html:lang(zh-Hant) .meal-items li>span:last-child { font-family: 'VT323', monospace; font-size: 22px; }
+html:lang(zh-Hant) .meal-add { font-size: 15px; min-height: 44px; }
+html:lang(zh-Hant) .guide-copy h2 { font-size: 24px; line-height: 1.6; letter-spacing: .04em; }
+html:lang(zh-Hant) .guide-copy>p:not(.eyebrow) { font-size: 16px; line-height: 1.8; }
+html:lang(zh-Hant) .guide-copy>p.guide-price { font-size: 20px; }
+html:lang(zh-Hant) .eyebrow { font-size: 12px; letter-spacing: .06em; }
+html:lang(zh-Hant) .tracker-heading h1 { font-size: 24px; line-height: 1.6; letter-spacing: .04em; }
+html:lang(zh-Hant) :is(.notice, .form-error, .success-message, .empty-state) { font-size: 15px; line-height: 1.8; }
+html:lang(zh-Hant) .text-button { font-size: 15px; line-height: 1.6; }
+html:lang(zh-Hant) :is(.sync-label, .today-panel time) { font-size: 14px; }
+html:lang(zh-Hant) .today-progress p, html:lang(zh-Hant) .remaining-box>span { font-size: 15px; }
+html:lang(zh-Hant) .progress-caption { font-family: 'VT323', monospace; font-size: 20px; }
+html:lang(zh-Hant) .food-entry strong { font-size: 16px; line-height: 1.7; }
+html:lang(zh-Hant) .food-entry small { font-size: 14px; line-height: 1.7; }
+html:lang(zh-Hant) .preset-button { font-size: 14px; padding: 10px 8px; line-height: 1.6; }
+html:lang(zh-Hant) .food-preview { font-size: 16px; }
+html:lang(zh-Hant) .history-metrics span { font-size: 14px; line-height: 1.7; }
+html:lang(zh-Hant) .history-day { font-size: 14px; }
+html:lang(zh-Hant) .history-day strong { font-size: 12px; }
+html:lang(zh-Hant) .history-chart { grid-template-columns: repeat(7,minmax(40px,1fr)); gap: 6px; overflow-x: auto; height: 240px; padding-bottom: 12px; }
+html:lang(zh-Hant) .modal h2 { font-size: 24px; line-height: 1.6; letter-spacing: .04em; }
+html:lang(zh-Hant) :is(.modal>.muted, .modal .notice, .info-content, .compact-modal>p) { font-size: 16px; line-height: 1.8; }
+html:lang(zh-Hant) :is(.modal .field small, .demo-access>span) { font-size: 14px; line-height: 1.7; }
+html:lang(zh-Hant) .auth-tabs button { font-size: 18px; line-height: 1.6; letter-spacing: .04em; }
+html:lang(zh-Hant) .modal .guide-price { font-size: 20px; }
+html:lang(zh-Hant) .toast { font-size: 16px; line-height: 1.8; }
+html:lang(zh-Hant) :is(.site-footer, .footer-brand p, .footer-links a, .footer-links button) { font-size: 14px; line-height: 1.8; letter-spacing: .02em; }
+html:lang(zh-Hant) #analytics-button { max-inline-size: 24em; }
+html:lang(zh-Hant) .footer-version { font-family: 'VT323', monospace; font-size: 16px; }
+
+@media (max-width:700px) {
+  html:lang(zh-Hant) .hero-headline { font-size: 24px; max-width: 18em; }
+  html:lang(zh-Hant) .meal-section .section-topline { flex-wrap: wrap; }
+}
+@media (max-width:480px) {
+  html:lang(zh-Hant) .site-header { padding: 18px 0 10px; }
+  html:lang(zh-Hant) .brand-name { font-size: 24px; letter-spacing: .04em; }
+  html:lang(zh-Hant) .hero-headline { max-width: 14em; margin-top: 14px; line-height: 1.65; }
+  html:lang(zh-Hant) .languages { gap: 4px; }
+  html:lang(zh-Hant) .languages button { padding: 6px; letter-spacing: 0; }
+  html:lang(zh-Hant) .main-nav .nav-link { font-size: 16px; letter-spacing: 0; padding: 12px 4px; }
+  html:lang(zh-Hant) .section-topline { font-size: 18px; margin-top: 20px; }
+  html:lang(zh-Hant) .panel-heading { gap: 10px; margin-bottom: 18px; }
+  html:lang(zh-Hant) .panel-heading h2 { letter-spacing: .02em; }
+  html:lang(zh-Hant) .panel-heading .pill { max-width: 32%; }
+  html:lang(zh-Hant) .goal-option { padding: 10px 12px; gap: 10px; }
+  html:lang(zh-Hant) .button-primary { font-size: 24px; letter-spacing: .04em; }
+  html:lang(zh-Hant) .result-panel>.button { font-size: 18px; letter-spacing: .02em; }
+  html:lang(zh-Hant) .meal-card h3 { font-size: 18px; }
+  html:lang(zh-Hant) .meal-section .section-topline>.segmented { margin-top: 12px; }
+  html:lang(zh-Hant) .modal { padding: 20px; }
+  html:lang(zh-Hant) .modal h2 { font-size: 24px; }
+  html:lang(zh-Hant) .modal-actions .button { font-size: 15px; }
+}
+@media (max-width:360px) {
+  html:lang(zh-Hant) .weight-row { flex-wrap: wrap; }
+  html:lang(zh-Hant) .weight-row .field:first-child { flex-basis: 100%; }
+  html:lang(zh-Hant) .weight-row .unit-field, html:lang(zh-Hant) .weight-row .age-field { flex: 1; }
+  html:lang(zh-Hant) .modal { padding: 16px; }
+  html:lang(zh-Hant) .auth-tabs button { font-size: 16px; }
+  html:lang(zh-Hant) .modal-actions { align-items: stretch; }
+}
+@media print {
+  html:lang(zh-Hant) :is(.brand-name, .hero-headline, .panel-heading h2) { color: #111; text-shadow: none; }
+}
