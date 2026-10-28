@@ -360,6 +360,30 @@ function renderGuideCheckout(body) {
   const terms = node('div','guide-terms');
   terms.append(node('p','',t('guideDelivery')),node('p','',t('guideRefund',{email:offer.supportEmail})),node('p','small muted',t('guideManualNote')));
   body.append(terms);
+  const payment = node('div','field guide-payment');
+  const recipientLabel = node('label','',t('guideRecipient'));
+  recipientLabel.htmlFor = 'guide-paypal-email';
+  const recipient = node('input','guide-recipient');
+  recipient.id = 'guide-paypal-email'; recipient.type = 'text'; recipient.value = offer.payPalEmail;
+  recipient.readOnly = true; recipient.spellcheck = false; recipient.autocomplete = 'off';
+  const copy = node('button','button button-outline button-full',t('guideCopyEmail'));
+  copy.type = 'button';
+  const copyStatus = node('p','small guide-copy-status');
+  copyStatus.setAttribute('role','status'); copyStatus.setAttribute('aria-live','polite');
+  copy.addEventListener('click',async () => {
+    copyStatus.textContent = '';
+    try {
+      await navigator.clipboard.writeText(offer.payPalEmail);
+      copyStatus.textContent = t('guideEmailCopied');
+    } catch {
+      recipient.focus(); recipient.select();
+      copyStatus.textContent = t('guideCopyEmailFallback');
+    }
+  });
+  const paymentSteps = node('ol','guide-payment-steps');
+  paymentSteps.append(node('li','',t('guidePaymentStep1')),node('li','',t('guidePaymentStep2',{email:offer.payPalEmail})),node('li','',t('guidePaymentStep3')));
+  payment.append(recipientLabel,recipient,copy,copyStatus,paymentSteps);
+  body.append(payment);
   const pay = node('a','button button-primary button-full guide-pay-link',t('guideCheckout'));
   pay.href = offer.checkoutUrl; pay.target = '_blank'; pay.rel = 'noopener noreferrer';
   pay.setAttribute('aria-describedby','guide-paypal-note');

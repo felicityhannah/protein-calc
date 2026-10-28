@@ -9,6 +9,8 @@ export const CONFIG = Object.freeze({
   // Owner explicitly requested enabling the purchase button on 28 October 2026.
   // Payment is followed by manual email delivery, never an automatic file unlock.
   guideSalesEnabled: true,
-  guideCheckoutUrl: 'https://paypal.me/felicityhannah8/9USD',
+  // Open only the official portal; buyers enter the confirmed receiving email manually.
+  guideCheckoutUrl: 'https://www.paypal.com/',
+  guidePayPalEmail: 'felicityahawhale@gmail.com',
   guideSupportEmail: 'felicityahawhale@gmail.com',
 });
