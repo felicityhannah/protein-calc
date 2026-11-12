@@ -3,13 +3,14 @@ import { FOODS, calculateTarget, convertWeightDisplay, buildMealExample, localDa
 import { createCloudStore } from './cloud.js';
 import { LANGUAGES, translate } from './i18n.js';
 import { getGuideOffer, buildGuideEmail } from './guide.js';
+import { createAnalytics } from './analytics.js';
 
 const $ = id => document.getElementById(id);
 const all = selector => [...document.querySelectorAll(selector)];
 const DEMO_KEY = 'proneed_demo_v2';
 const state = { lang: readPreference('proneed_language', 'en'), page: 'calculator', tab: 'today', diet: 'mixed', result: null, calculated: false, user: null, data: makeDemoData(), authMode: 'signin', demo: true, syncing: false, cloudLoaded: false, pendingGoal: null };
 let cloud, cloudError, toastTimer, generation = 0, refreshSequence = 0, syncTimer, demoWritable = true;
-let busy = false, analyticsReady = false, lastLocalDay = localDate();
+let busy = false, lastLocalDay = localDate();
 let logRenderKey = '', pendingFood = null;
 const pendingMeals = new Map();
 let selectedGuideEdition = null;
@@ -20,6 +21,27 @@ const t = (key, vars) => translate(state.lang, key, vars);
 const locale = () => LANGUAGES.find(language => language.id === state.lang)?.htmlLang || 'en';
 const number = value => new Intl.NumberFormat(locale(), { maximumFractionDigits: 1 }).format(value);
 const node = (tag, className, text) => { const result = document.createElement(tag); if (className) result.className = className; if (text != null) result.textContent = text; return result; };
+const analyticsStatusCopy = {
+  en: {off:'Usage statistics are off.',loading:'Connecting usage statistics…',loaded:'Usage statistics tag loaded.',error:'Usage statistics could not connect. Check your connection or blocking extensions, then choose Allow to try again.',local:'Usage statistics stay off in a local preview.',unconfigured:'Usage statistics are not connected yet.'},
+  zh: {off:'使用統計已關閉。',loading:'正在連線至使用統計服務…',loaded:'使用統計標籤已載入。',error:'無法連線至使用統計服務。請檢查網路或封鎖外掛，再選擇「允許」重試。',local:'本機預覽不會啟用使用統計。',unconfigured:'使用統計服務尚未設定完成。'},
+  de: {off:'Nutzungsstatistiken sind ausgeschaltet.',loading:'Verbindung zur Nutzungsstatistik wird hergestellt…',loaded:'Das Tag für Nutzungsstatistiken wurde geladen.',error:'Keine Verbindung möglich. Prüfe deine Verbindung oder blockierende Erweiterungen und wähle Erlauben, um es erneut zu versuchen.',local:'In der lokalen Vorschau bleiben Nutzungsstatistiken aus.',unconfigured:'Nutzungsstatistiken sind noch nicht eingerichtet.'},
+  ja: {off:'利用統計はオフです。',loading:'利用統計サービスに接続しています…',loaded:'利用統計のタグを読み込みました。',error:'利用統計に接続できませんでした。接続やブロック用拡張機能を確認し、「許可」で再試行してください。',local:'ローカルプレビューでは利用統計はオフです。',unconfigured:'利用統計はまだ設定されていません。'},
+  fr: {off:'Les statistiques sont désactivées.',loading:'Connexion au service de statistiques…',loaded:'La balise de statistiques est chargée.',error:'Connexion impossible. Vérifiez votre connexion ou les extensions de blocage, puis choisissez Autoriser pour réessayer.',local:'Les statistiques restent désactivées dans l’aperçu local.',unconfigured:'Les statistiques ne sont pas encore configurées.'},
+  es: {off:'Las estadísticas están desactivadas.',loading:'Conectando las estadísticas de uso…',loaded:'La etiqueta de estadísticas se cargó.',error:'No se pudo conectar. Revisa la conexión o las extensiones de bloqueo y selecciona Permitir para reintentarlo.',local:'Las estadísticas permanecen desactivadas en la vista local.',unconfigured:'Las estadísticas aún no están configuradas.'},
+};
+const analytics = createAnalytics({
+  measurementId: CONFIG.analyticsId,
+  getConsent: () => readPreference('proneed_analytics','no') === 'yes',
+  getLanguage: () => state.lang,
+  onStatusChange: renderAnalyticsStatus,
+});
+
+function renderAnalyticsStatus(status = analytics.status) {
+  const target = $('analytics-connection-status');
+  if (!target) return;
+  target.textContent = (analyticsStatusCopy[state.lang] || analyticsStatusCopy.en)[status];
+  target.setAttribute('role',status === 'error' ? 'alert' : 'status');
+}
 
 function readPreference(key, fallback) { try { return localStorage.getItem(key) || fallback; } catch { return fallback; } }
 function writePreference(key, value) { try { localStorage.setItem(key, value); } catch { /* Optional preferences do not block the calculator. */ } }
@@ -413,7 +435,9 @@ function showInfo(content) {
     const source = node('a','','Supabase privacy information ↗'); source.href='https://supabase.com/privacy'; source.target='_blank'; source.rel='noopener noreferrer'; body.append(source);
   } else if (content === 'analytics') {
     $('info-title').textContent = t('analyticsChoice'); body.append(node('p','',t('privacyBody')));
-    for (const choice of ['enable','disable']) { const button = node('button',`button ${choice === 'enable' ? 'button-primary' : 'button-outline'}`,t(choice === 'enable' ? 'analyticsEnable' : 'analyticsDisable')); button.type='button'; button.addEventListener('click',() => { writePreference('proneed_analytics',choice === 'enable' ? 'yes':'no'); if (choice === 'enable') initAnalytics(); else if (CONFIG.analyticsId) window[`ga-disable-${CONFIG.analyticsId}`]=true; $('info-dialog').close(); }); body.append(button,document.createTextNode(' ')); }
+    const connection = node('p','small muted'); connection.id = 'analytics-connection-status'; body.append(connection);
+    renderAnalyticsStatus();
+    for (const choice of ['enable','disable']) { const button = node('button',`button ${choice === 'enable' ? 'button-primary' : 'button-outline'}`,t(choice === 'enable' ? 'analyticsEnable' : 'analyticsDisable')); button.type='button'; button.addEventListener('click',() => { writePreference('proneed_analytics',choice === 'enable' ? 'yes':'no'); initAnalytics(); }); body.append(button,document.createTextNode(' ')); }
   } else {
     renderGuideCheckout(body);
   }
@@ -421,16 +445,9 @@ function showInfo(content) {
 }
 
 function initAnalytics() {
-  if (!/^G-[A-Z0-9]+$/.test(CONFIG.analyticsId || '') || readPreference('proneed_analytics','no') !== 'yes' || ['localhost','127.0.0.1',''].includes(location.hostname)) return;
-  window[`ga-disable-${CONFIG.analyticsId}`] = false;
-  if (analyticsReady) return;
-  window.dataLayer = window.dataLayer || [];
-  window.gtag = function(){ window.dataLayer.push(arguments); };
-  window.gtag('js',new Date());
-  window.gtag('config',CONFIG.analyticsId,{ send_page_view:true, page_location:location.origin+location.pathname, allow_google_signals:false, allow_ad_personalization_signals:false });
-  const script = document.createElement('script'); script.src=`https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(CONFIG.analyticsId)}`; script.async=true; document.head.append(script); analyticsReady=true;
+  return analytics.syncConsent();
 }
-function track(event) { if (analyticsReady && readPreference('proneed_analytics','no') === 'yes' && ['calculation_complete','tracker_open','food_logged','guide_view'].includes(event)) window.gtag('event',event,{language:state.lang,page_location:location.origin+location.pathname}); }
+function track(event) { return analytics.track(event); }
 
 function bindEvents() {
   $('calculator-form').addEventListener('submit',event => { event.preventDefault(); calculate(true); });
