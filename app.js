@@ -427,7 +427,7 @@ function initAnalytics() {
   window.dataLayer = window.dataLayer || [];
   window.gtag = function(){ window.dataLayer.push(arguments); };
   window.gtag('js',new Date());
-  window.gtag('config',CONFIG.analyticsId,{ send_page_view:false, page_location:location.origin+location.pathname, allow_google_signals:false, allow_ad_personalization_signals:false });
+  window.gtag('config',CONFIG.analyticsId,{ send_page_view:true, page_location:location.origin+location.pathname, allow_google_signals:false, allow_ad_personalization_signals:false });
   const script = document.createElement('script'); script.src=`https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(CONFIG.analyticsId)}`; script.async=true; document.head.append(script); analyticsReady=true;
 }
 function track(event) { if (analyticsReady && readPreference('proneed_analytics','no') === 'yes' && ['calculation_complete','tracker_open','food_logged','guide_view'].includes(event)) window.gtag('event',event,{language:state.lang,page_location:location.origin+location.pathname}); }
